@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Impostor RC Online</title>
+<script src="/socket.io/socket.io.js"></script>
+
+<style>
+body { font-family: Arial; text-align:center; background:#0d1b2a; color:white;}
+button { padding:10px; border-radius:10px; background:gold; border:none;}
+.card { margin-top:20px; padding:30px; background:#1b263b; border-radius:10px;}
+</style>
+</head>
+
+<body>
+
+<h1>⚽ Impostor dos RC</h1>
+
+<div id="menu">
+<input id="name" placeholder="Seu nome"><br>
+<input id="room" placeholder="Código da sala"><br>
+<button onclick="join()">Entrar</button>
+</div>
+
+<div id="lobby" style="display:none;">
+<h2>Sala: <span id="roomName"></span></h2>
+<ul id="players"></ul>
+<button onclick="start()">Começar</button>
+</div>
+
+<div id="game" style="display:none;">
+<h2 id="roleText">Clique para ver</h2>
+<button onclick="reveal()">Revelar</button>
+</div>
+
+<script>
+const socket = io();
+
+function join(){
+  const name = document.getElementById("name").value;
+  const room = document.getElementById("room").value;
+
+  window.room = room;
+
+  socket.emit("joinRoom", {room, name});
+
+  document.getElementById("menu").style.display="none";
+  document.getElementById("lobby").style.display="block";
+  document.getElementById("roomName").innerText=room;
+}
+
+socket.on("players", (players)=>{
+  const list = document.getElementById("players");
+  list.innerHTML="";
+  players.forEach(p=>{
+    const li = document.createElement("li");
+    li.innerText = p.name;
+    list.appendChild(li);
+  });
+});
+
+function start(){
+  socket.emit("startGame", window.room);
+}
+
+socket.on("role", (role)=>{
+  window.myRole = role;
+  document.getElementById("lobby").style.display="none";
+  document.getElementById("game").style.display="block";
+});
+
+function reveal(){
+  document.getElementById("roleText").innerText = window.myRole;
+}
+</script>
+
+</body>
+</html>
